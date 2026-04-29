@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-import LoginPage from './LoginPage';
+import { useNavigate } from 'react-router-dom';
+import { signup } from '../../api/auth';
 import '../../index.css';
 
 const SignupPage: React.FC = () => {
@@ -14,52 +14,58 @@ const SignupPage: React.FC = () => {
       document.head.removeChild(link);
     };
   }, []);
-  // Dummy user state
-  const [users, setUsers] = React.useState<{ name: string; email: string; password: string }[]>([]);
+  // State for form
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
-  const [showLogin, setShowLogin] = React.useState(false);
-  // const navigate = useNavigate();
+  const [loading, setLoading] = React.useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
+    
     if (!name || !email || !password || !confirmPassword) {
       setError("Please fill all fields.");
+      setLoading(false);
       return;
     }
+    
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      setLoading(false);
       return;
     }
-    if (users.some(u => u.email === email)) {
-      setError("User already exists.");
-      return;
+
+    try {
+      // Call real backend signup API
+      const response = await signup({ username: name, email, password });
+      
+      // Store token and user info (response contains { success: true, data: { token, user } })
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userToken', response.data.token); // Keep for compatibility
+      localStorage.setItem('userEmail', email);
+      
+      // Trigger custom event to update authentication state immediately
+      window.dispatchEvent(new Event('userLoggedIn'));
+      
+      setSuccess("Account created successfully! Redirecting to dashboard...");
+      
+      // Redirect to dashboard after successful signup
+      navigate('/dashboard', { replace: true });
+      
+    } catch (error: any) {
+      setError(error.message || "Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setUsers([...users, { name, email, password }]);
-    setSuccess("");
-    setName("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setTimeout(() => {
-      setShowLogin(true);
-    }, 300); // short delay for UX
   };
 
-
-  if (showLogin) {
-    // Dummy onLogin function
-    const onLogin = (email: string, password: string) => {
-      return users.some(u => u.email === email && u.password === password);
-    };
-  return <LoginPage goToSignup={() => setShowLogin(false)} onLogin={onLogin} />;
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f5f4f2] to-[#e0e7ff]">
@@ -119,14 +125,19 @@ const SignupPage: React.FC = () => {
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
-            <input
-              type="password"
-              placeholder="Password"
-              className="border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
+            <div>
+              <input
+                type="password"
+                placeholder="Password"
+                className="border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Password must contain at least one uppercase letter, lowercase letter, and number (min 6 characters)
+              </p>
+            </div>
             <input
               type="password"
               placeholder="Confirm Password"
@@ -139,13 +150,14 @@ const SignupPage: React.FC = () => {
             {success && <div className="text-green-600 text-sm">{success}</div>}
             <button
               type="submit"
-              className="bg-blue-600 text-white py-3 rounded-lg font-semibold transition duration-200 hover:bg-blue-700 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+              className="bg-blue-600 text-white py-3 rounded-lg font-semibold transition duration-200 hover:bg-blue-700 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create account
+              {loading ? "Creating account..." : "Create account"}
             </button>
           </form>
           <div className="mt-6 text-center text-gray-500 text-sm">
-            Already have an account? <button type="button" className="text-blue-600 font-medium hover:underline" onClick={() => setShowLogin(true)}>Login</button>
+            Already have an account? <a href="/login" className="text-blue-600 font-medium hover:underline">Login</a>
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Cloud, Zap, Shield } from 'lucide-react';
 
 const Hero = () => {
@@ -12,6 +13,7 @@ const Hero = () => {
       document.head.removeChild(link);
     };
   }, []);
+  const navigate = useNavigate();
   return (
   <section className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-hidden">
       {/* Background Elements */}
@@ -69,14 +71,13 @@ const Hero = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16" data-aos="fade-up" data-aos-delay="400">
             <button 
               onClick={() => {
-                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                navigate('/login');
               }}
               className="group bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg transition duration-200 hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
             >
-              Start Free Trial
+              Start with Aegis
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
-              {/* Watch Demo button removed as requested */}
           </div>
 
           {/* Trust Indicators */}

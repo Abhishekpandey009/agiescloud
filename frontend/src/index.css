@@ -1,3 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Cedarville+Cursive&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+	font-family: 'Orbitron', 'Cedarville Cursive', sans-serif;
+	background: linear-gradient(135deg, #0f172a 0%, #312e81 100%);
+}
+
+.drop-shadow-glow {
+	filter: drop-shadow(0 0 8px #38bdf8) drop-shadow(0 0 16px #6366f1);
+}
+
+/* Custom scrollbar for futuristic look */
+::-webkit-scrollbar {
+	width: 8px;
+	background: #23264a;
+}
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+	border-radius: 8px;
+}
+
+/* Animation for dropdown menus */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(-4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fadeIn {
+	animation: fadeIn 0.2s ease-out;
+}
+
+/* Hover animation for upload zone */
+@keyframes bounceIn {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.02);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.upload-zone-hover {
+	animation: bounceIn 0.3s ease-in-out;
+}

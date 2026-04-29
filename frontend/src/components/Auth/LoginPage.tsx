@@ -1,33 +1,50 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../../api/auth';
 import '../../index.css';
 
-import { useNavigate } from 'react-router-dom';
-
-const LoginPage: React.FC<{ onLogin: (email: string, password: string) => boolean; goToSignup: () => void; }>
- = ({ onLogin, goToSignup }) => {
+const LoginPage: React.FC<{ goToSignup: () => void; }>
+ = ({ goToSignup }) => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true);
+    
     if (!email || !password) {
       setError("Please fill all fields.");
+      setLoading(false);
       return;
     }
-    const isValid = onLogin(email, password);
-    if (isValid) {
-      // Save token and email for dashboard auth
-      localStorage.setItem('userToken', 'dummyToken');
+
+    try {
+      // Call real backend login API
+      const response = await login({ email, password });
+      
+      // Store token and user info (response contains { success: true, data: { token, user } })
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userToken', response.data.token); // Keep for compatibility
       localStorage.setItem('userEmail', email);
-      setSuccess("");
+      
+      // Trigger custom event to update authentication state immediately
+      window.dispatchEvent(new Event('userLoggedIn'));
+      
+      setSuccess("Login successful! Redirecting...");
+      
+      // Redirect to dashboard immediately
       navigate('/dashboard', { replace: true });
-    } else {
-      setError("Invalid credentials or user does not exist.");
+      
+    } catch (error: any) {
+      setError(error.message || "Invalid credentials or login failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,9 +85,10 @@ const LoginPage: React.FC<{ onLogin: (email: string, password: string) => boolea
             {success && <div className="text-green-600 text-sm">{success}</div>}
             <button
               type="submit"
-              className="bg-blue-600 text-white py-3 rounded-lg font-semibold transition duration-200 hover:bg-blue-700 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+              className="bg-blue-600 text-white py-3 rounded-lg font-semibold transition duration-200 hover:bg-blue-700 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Login
+              {loading ? "Signing in..." : "Login"}
             </button>
           </form>
           <div className="mt-6 text-center text-gray-500 text-sm">
